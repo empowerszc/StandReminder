@@ -29,12 +29,6 @@ public partial class MainForm : Form
 
     private void ShowReminder()
     {
-        if (this.InvokeRequired)
-        {
-            this.Invoke(ShowReminder);
-            return;
-        }
-
         var reminderForm = new ReminderForm(_settings.StandDurationMinutes);
         reminderForm.Closed += (s, args) =>
         {
@@ -51,6 +45,7 @@ public partial class MainForm : Form
 
     public void SnoozeReminder(int minutes)
     {
+        reminderTimer.Stop();
         reminderTimer.Interval = minutes * 60 * 1000;
         reminderTimer.Start();
     }

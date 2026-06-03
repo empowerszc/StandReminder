@@ -1,9 +1,10 @@
 // StandReminder/MainForm.Designer.cs
+#nullable enable
 namespace StandReminder;
 
 partial class MainForm
 {
-    private System.ComponentModel.IContainer components = null;
+    private System.ComponentModel.IContainer? components = null;
     private System.Windows.Forms.NotifyIcon trayIcon = null!;
     private System.Windows.Forms.ContextMenuStrip trayMenu = null!;
     private System.Windows.Forms.ToolStripMenuItem settingsMenuItem = null!;
@@ -11,12 +12,14 @@ partial class MainForm
     private System.Windows.Forms.ToolStripSeparator separator = null!;
     private System.Windows.Forms.ToolStripMenuItem exitMenuItem = null!;
     private System.Windows.Forms.Timer reminderTimer = null!;
+    private System.Drawing.Icon? _trayIconResource;
 
     protected override void Dispose(bool disposing)
     {
         if (disposing && (components != null))
         {
             components.Dispose();
+            _trayIconResource?.Dispose();
         }
         base.Dispose(disposing);
     }
@@ -54,7 +57,8 @@ partial class MainForm
         var iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "tray.ico");
         if (File.Exists(iconPath))
         {
-            this.trayIcon.Icon = new System.Drawing.Icon(iconPath);
+            _trayIconResource = new System.Drawing.Icon(iconPath);
+            this.trayIcon.Icon = _trayIconResource;
         }
 
         this.reminderTimer.Tick += new System.EventHandler(this.ReminderTimer_Tick);

@@ -18,7 +18,15 @@ static class Program
             return;
         }
 
-        ApplicationConfiguration.Initialize();
-        Application.Run(new MainForm());
+        try
+        {
+            ApplicationConfiguration.Initialize();
+            Application.Run(new MainForm());
+        }
+        finally
+        {
+            _mutex?.ReleaseMutex();
+            _mutex?.Dispose();
+        }
     }
 }

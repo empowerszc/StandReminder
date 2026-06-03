@@ -18,7 +18,9 @@ public partial class ReminderForm : Form
     private void ConfigureForm()
     {
         messageLabel.Text = $"站起来活动一下\n({_standDurationMinutes}分钟)";
-        messageLabel.Font = new Font(messageLabel.Font.FontFamily, 11, FontStyle.Regular);
+        var oldFont = messageLabel.Font;
+        messageLabel.Font = new Font(oldFont.FontFamily, 11, FontStyle.Regular);
+        oldFont.Dispose();
 
         PositionBottomRight();
     }

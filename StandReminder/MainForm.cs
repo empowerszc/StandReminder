@@ -29,10 +29,18 @@ public partial class MainForm : Form
 
     private void ShowReminder()
     {
-        var reminderForm = new ReminderForm(_settings.StandDurationMinutes);
+        var reminderForm = new ReminderForm(_settings.StandDurationMinutes, _settings.SnoozeMinutes);
         reminderForm.Closed += (s, args) =>
         {
-            reminderTimer.Interval = _settings.ReminderIntervalMinutes * 60 * 1000;
+            reminderTimer.Stop();
+            if (reminderForm.Tag?.ToString() == "snooze")
+            {
+                reminderTimer.Interval = _settings.SnoozeMinutes * 60 * 1000;
+            }
+            else
+            {
+                reminderTimer.Interval = _settings.ReminderIntervalMinutes * 60 * 1000;
+            }
             reminderTimer.Start();
         };
         reminderForm.Show();

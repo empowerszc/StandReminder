@@ -7,10 +7,12 @@ namespace StandReminder;
 public partial class ReminderForm : Form
 {
     private int _standDurationMinutes;
+    private int _snoozeMinutes;
 
-    public ReminderForm(int standDurationMinutes)
+    public ReminderForm(int standDurationMinutes, int snoozeMinutes)
     {
         _standDurationMinutes = standDurationMinutes;
+        _snoozeMinutes = snoozeMinutes;
         InitializeComponent();
         ConfigureForm();
     }
@@ -21,6 +23,8 @@ public partial class ReminderForm : Form
         var oldFont = messageLabel.Font;
         messageLabel.Font = new Font(oldFont.FontFamily, 11, FontStyle.Regular);
         oldFont.Dispose();
+
+        snoozeButton.Text = $"稍后({_snoozeMinutes}分钟)";
 
         PositionBottomRight();
     }

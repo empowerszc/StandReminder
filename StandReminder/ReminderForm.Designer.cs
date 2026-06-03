@@ -64,7 +64,7 @@ partial class ReminderForm
         this.ShowInTaskbar = false;
         this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
         this.Text = "站立提醒";
-        this.TopMost = false;
+        this.TopMost = true;
         this.ResumeLayout(false);
         this.PerformLayout();
     }

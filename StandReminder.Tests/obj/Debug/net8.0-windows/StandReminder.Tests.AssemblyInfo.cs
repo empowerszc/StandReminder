@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("StandReminder.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6f9010c48b24f2f343ff173637804d423ecd5c27")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e6c20af1605808049faf26cfdc757344ac30785c")]
 [assembly: System.Reflection.AssemblyProductAttribute("StandReminder.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("StandReminder.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

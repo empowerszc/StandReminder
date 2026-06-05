@@ -7,6 +7,11 @@ public partial class MainForm : Form
 {
     private AppSettings _settings = null!;
 
+    // Power broadcast constants
+    private const int WM_POWERBROADCAST = 0x0218;
+    private const int PBT_APMSUSPEND = 0x0004;
+    private const int PBT_APMRESUMEAUTOMATIC = 0x0012;
+
     public MainForm()
     {
         InitializeComponent();
@@ -78,5 +83,28 @@ public partial class MainForm : Form
     protected override void SetVisibleCore(bool value)
     {
         base.SetVisibleCore(false); // Always keep hidden
+    }
+
+    protected override void WndProc(ref Message m)
+    {
+        if (m.Msg == WM_POWERBROADCAST)
+        {
+            switch (m.WParam.ToInt32())
+            {
+                case PBT_APMSUSPEND:
+                    // System entering sleep/hibernate - stop timer
+                    reminderTimer.Stop();
+                    break;
+
+                case PBT_APMRESUMEAUTOMATIC:
+                    // System resumed from sleep - reset timer
+                    reminderTimer.Stop();
+                    reminderTimer.Interval = _settings.ReminderIntervalMinutes * 60 * 1000;
+                    reminderTimer.Start();
+                    break;
+            }
+        }
+
+        base.WndProc(ref m);
     }
 }

@@ -1,4 +1,5 @@
 // StandReminder/MainForm.cs
+using Microsoft.Win32;
 using System.Windows.Forms;
 
 namespace StandReminder;
@@ -7,17 +8,15 @@ public partial class MainForm : Form
 {
     private AppSettings _settings = null!;
 
-    // Power broadcast constants
-    private const int WM_POWERBROADCAST = 0x0218;
-    private const int PBT_APMSUSPEND = 0x0004;
-    private const int PBT_APMRESUMEAUTOMATIC = 0x0012;
-
     public MainForm()
     {
         InitializeComponent();
         LoadSettings();
         this.Visible = false;
         this.ShowInTaskbar = false;
+
+        // Subscribe to power mode changes
+        SystemEvents.PowerModeChanged += OnPowerModeChanged;
     }
 
     private void LoadSettings()
@@ -76,6 +75,7 @@ public partial class MainForm : Form
 
     private void ExitMenuItem_Click(object? sender, EventArgs e)
     {
+        SystemEvents.PowerModeChanged -= OnPowerModeChanged;
         trayIcon.Visible = false;
         Application.Exit();
     }
@@ -85,26 +85,21 @@ public partial class MainForm : Form
         base.SetVisibleCore(false); // Always keep hidden
     }
 
-    protected override void WndProc(ref Message m)
+    private void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
     {
-        if (m.Msg == WM_POWERBROADCAST)
+        switch (e.Mode)
         {
-            switch (m.WParam.ToInt32())
-            {
-                case PBT_APMSUSPEND:
-                    // System entering sleep/hibernate - stop timer
-                    reminderTimer.Stop();
-                    break;
+            case PowerModes.Suspend:
+                // System entering sleep/hibernate - stop timer
+                reminderTimer.Stop();
+                break;
 
-                case PBT_APMRESUMEAUTOMATIC:
-                    // System resumed from sleep - reset timer
-                    reminderTimer.Stop();
-                    reminderTimer.Interval = _settings.ReminderIntervalMinutes * 60 * 1000;
-                    reminderTimer.Start();
-                    break;
-            }
+            case PowerModes.Resume:
+                // System resumed from sleep - reset timer
+                reminderTimer.Stop();
+                reminderTimer.Interval = _settings.ReminderIntervalMinutes * 60 * 1000;
+                reminderTimer.Start();
+                break;
         }
-
-        base.WndProc(ref m);
     }
 }

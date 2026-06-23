@@ -7,6 +7,8 @@ namespace StandReminder;
 public partial class MainForm : Form
 {
     private AppSettings _settings = null!;
+    private bool _isReminderOpen = false;
+    private DateTime _lastReminderTime = DateTime.MinValue;
 
     public MainForm()
     {
@@ -15,13 +17,16 @@ public partial class MainForm : Form
         this.Visible = false;
         this.ShowInTaskbar = false;
 
-        // Subscribe to power mode changes
+        // Listen to power mode changes (sleep/wake)
         SystemEvents.PowerModeChanged += OnPowerModeChanged;
+        // Listen to session lock/unlock (screen lock, sleep, logon)
+        SystemEvents.SessionSwitch += OnSessionSwitch;
     }
 
     private void LoadSettings()
     {
         _settings = AppSettings.Load();
+        _lastReminderTime = DateTime.Now;
         reminderTimer.Interval = _settings.ReminderIntervalMinutes * 60 * 1000;
         reminderTimer.Start();
     }
@@ -33,9 +38,23 @@ public partial class MainForm : Form
 
     private void ShowReminder()
     {
+        // Prevent multiple reminders from stacking
+        if (_isReminderOpen) return;
+
+        // Verify enough time has actually passed since last reminder
+        var elapsed = DateTime.Now - _lastReminderTime;
+        if (elapsed.TotalMinutes < _settings.ReminderIntervalMinutes - 1)
+        {
+            return;
+        }
+
+        _lastReminderTime = DateTime.Now;
+        _isReminderOpen = true;
+
         var reminderForm = new ReminderForm(_settings.StandDurationMinutes, _settings.SnoozeMinutes);
         reminderForm.Closed += (s, args) =>
         {
+            _isReminderOpen = false;
             reminderTimer.Stop();
             if (reminderForm.Tag?.ToString() == "snooze")
             {
@@ -52,6 +71,8 @@ public partial class MainForm : Form
 
     public void ShowReminderNow()
     {
+        if (_isReminderOpen) return;
+        _lastReminderTime = DateTime.Now;
         ShowReminder();
     }
 
@@ -76,6 +97,7 @@ public partial class MainForm : Form
     private void ExitMenuItem_Click(object? sender, EventArgs e)
     {
         SystemEvents.PowerModeChanged -= OnPowerModeChanged;
+        SystemEvents.SessionSwitch -= OnSessionSwitch;
         trayIcon.Visible = false;
         Application.Exit();
     }
@@ -90,16 +112,41 @@ public partial class MainForm : Form
         switch (e.Mode)
         {
             case PowerModes.Suspend:
-                // System entering sleep/hibernate - stop timer
-                reminderTimer.Stop();
+                StopTimerForAway();
                 break;
 
             case PowerModes.Resume:
-                // System resumed from sleep - reset timer
-                reminderTimer.Stop();
-                reminderTimer.Interval = _settings.ReminderIntervalMinutes * 60 * 1000;
-                reminderTimer.Start();
+                ResetTimerOnReturn();
                 break;
         }
+    }
+
+    private void OnSessionSwitch(object sender, SessionSwitchEventArgs e)
+    {
+        switch (e.Reason)
+        {
+            case SessionSwitchReason.SessionLock:
+                // Screen locked (Win+L, sleep, timeout)
+                StopTimerForAway();
+                break;
+
+            case SessionSwitchReason.SessionUnlock:
+                // User unlocked/logged back in
+                ResetTimerOnReturn();
+                break;
+        }
+    }
+
+    private void StopTimerForAway()
+    {
+        reminderTimer.Stop();
+    }
+
+    private void ResetTimerOnReturn()
+    {
+        reminderTimer.Stop();
+        _lastReminderTime = DateTime.Now;
+        reminderTimer.Interval = _settings.ReminderIntervalMinutes * 60 * 1000;
+        reminderTimer.Start();
     }
 }
